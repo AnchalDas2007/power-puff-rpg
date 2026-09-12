@@ -12,6 +12,7 @@ class UserCreate(UserBase):
     password: str = Field(..., min_length=6)
     selected_theme: Optional[str] = "dark-dungeon"
     personality_house: Optional[str] = "Blossom Leader"
+    guild_selection: Optional[str] = None
     character_avatar: Optional[str] = "warrior_girl"
 
 class UserLogin(BaseModel):
@@ -60,13 +61,14 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
-# ----------------- Task Schemas -----------------
+# ----------------- Task & Quest Schemas -----------------
 
 class TaskBase(BaseModel):
     title: str
     description: Optional[str] = None
     map_location: str = "Town Square"
     difficulty: str = "Medium"
+    attribute: str = "Intellect"
     xp_reward: int = 50
     gold_reward: int = 20
 
@@ -81,6 +83,50 @@ class TaskOut(TaskBase):
 
     class Config:
         from_attributes = True
+
+# Aliases for frontend flexibility
+QuestBase = TaskBase
+QuestCreate = TaskCreate
+QuestOut = TaskOut
+
+
+# ----------------- Bounty Schemas -----------------
+
+class BountyBase(BaseModel):
+    title: str
+    description: Optional[str] = None
+    target_house: str = "All"
+    bounty_type: str = "Daily Sprint"
+    xp_reward: int = 100
+    gold_reward: int = 75
+
+class BountyCreate(BountyBase):
+    pass
+
+class BountyOut(BountyBase):
+    id: int
+    is_claimed: bool
+    created_at: Optional[datetime] = None
+
+    class Config:
+        from_attributes = True
+
+
+# ----------------- Character Stats Schemas -----------------
+
+class CharacterStatsOut(BaseModel):
+    level: int
+    xp: int
+    maxXp: int
+    gold: int
+    streak: int
+    intellect: int
+    strength: int
+    vitality: int
+    mind: int
+    personality_house: str
+    character_avatar: str
+    selected_theme: str
 
 
 # ----------------- Lounge Schemas -----------------

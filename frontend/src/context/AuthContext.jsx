@@ -120,6 +120,35 @@ export const AuthProvider = ({ children }) => {
     closeAuthModal();
   };
 
+  // Create customized character and enter immediately
+  const createCustomCharacter = (customData) => {
+    const newProfile = {
+      ...DEFAULT_GUEST_USER,
+      username: customData.username || 'Cyber Adventurer',
+      personality_house: customData.personality_house || 'Blossom Leader',
+      character_avatar: customData.character_avatar || 'ren',
+      selected_theme: customData.selected_theme || 'cyberpunk-neon',
+      archetype: customData.archetype || 'Netrunner Specialist',
+      tactical_gear: customData.tactical_gear || 'Neural Overclock Visor',
+      intellect: customData.intellect ?? 18,
+      strength: customData.strength ?? 14,
+      vitality: customData.vitality ?? 16,
+      mind: customData.mind ?? 20,
+      level: 1,
+      xp: 0,
+      maxXp: 100,
+      gold: 500,
+      streak: 1
+    };
+    setUser(newProfile);
+    try {
+      localStorage.setItem('power_puff_user', JSON.stringify(newProfile));
+    } catch {}
+    setIsAuthenticated(true);
+    closeAuthModal();
+    return newProfile;
+  };
+
   // Logout
   const logout = () => {
     setToken(null);
@@ -193,6 +222,7 @@ export const AuthProvider = ({ children }) => {
       signup,
       logout,
       enterAsGuest,
+      createCustomCharacter,
       awardRewards
     }}>
       {children}

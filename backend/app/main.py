@@ -3,14 +3,36 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.config import settings
-from app.database import engine, Base
+from app.database import engine, Base, SessionLocal
 from app import models
-from app.routers import auth
+from app.routers import auth, quests, bounties, character
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     # Auto-create tables on startup (works with SQLite or PostgreSQL)
     Base.metadata.create_all(bind=engine)
+    
+    # Auto-seed starter bounties if empty
+    db = SessionLocal()
+    try:
+        if db.query(models.Bounty).count() == 0:
+            for b in bounties.DEFAULT_BOUNTIES:
+                db.add(models.Bounty(
+                    id=b["id"],
+                    title=b["title"],
+                    description=b["description"],
+                    target_house=b["target_house"],
+                    bounty_type=b["bounty_type"],
+                    xp_reward=b["xp_reward"],
+                    gold_reward=b["gold_reward"],
+                    is_claimed=False
+                ))
+            db.commit()
+    except Exception:
+        pass
+    finally:
+        db.close()
+
     yield
 
 app = FastAPI(
@@ -31,6 +53,9 @@ app.add_middleware(
 
 # Register routers
 app.include_router(auth.router, prefix=settings.API_V1_STR)
+app.include_router(quests.router, prefix=settings.API_V1_STR)
+app.include_router(bounties.router, prefix=settings.API_V1_STR)
+app.include_router(character.router, prefix=settings.API_V1_STR)
 
 @app.get("/api/health", tags=["Health"])
 def health_check():

@@ -15,10 +15,12 @@ from app.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
 
+@router.post("/register", response_model=schemas.Token, status_code=status.HTTP_201_CREATED)
 @router.post("/signup", response_model=schemas.Token, status_code=status.HTTP_201_CREATED)
-def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
+def register(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
     """
     Create a new adventurer account and return JWT bearer token with user profile.
+    Accepts hero username, email, password, and guild selection.
     """
     # Check if username or email already taken
     existing_user = db.query(models.User).filter(
@@ -40,6 +42,9 @@ def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
                 detail="Email is already registered."
             )
 
+    # Determine guild house from guild_selection or personality_house
+    chosen_house = user_in.guild_selection or user_in.personality_house or "Blossom Leader"
+
     # Hash password and initialize starter stats
     hashed_pwd = get_password_hash(user_in.password)
     db_user = models.User(
@@ -47,7 +52,7 @@ def signup(user_in: schemas.UserCreate, db: Session = Depends(get_db)):
         email=user_in.email.strip().lower(),
         hashed_password=hashed_pwd,
         selected_theme=user_in.selected_theme or "dark-dungeon",
-        personality_house=user_in.personality_house or "Blossom Leader",
+        personality_house=chosen_house,
         character_avatar=user_in.character_avatar or "warrior_girl",
         level=1,
         xp=0,
